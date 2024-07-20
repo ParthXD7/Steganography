@@ -1,7 +1,14 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
+  <meta charset="UTF-8">
   <title>Steganography Online</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+  <style>
+    canvas {
+      max-width: 100%;
+    }
+  </style>
 </head>
 <body>
   <div class="container">
@@ -10,8 +17,8 @@
     </div>
 
     <ul class="nav nav-tabs" id="tabs" data-tabs="tabs">
-      <li role="presentation" class="active"> <a href="#encode" data-toggle="tab">Encode</a></li>
-      <li role="presentation"> <a href="#decode" data-toggle="tab">Decode</a></li>
+      <li role="presentation" class="active"><a href="#encode" data-toggle="tab">Encode</a></li>
+      <li role="presentation"><a href="#decode" data-toggle="tab">Decode</a></li>
     </ul>
 
     <div id="my-tab-content" class="tab-content">
@@ -26,7 +33,7 @@
           </p>
           <form class="form">
             <div class="form-group">
-              <input class="form-control" type="file" name="baseFile" onchange="previewEncodeImage()">
+              <input class="form-control" type="file" name="baseFile">
             </div>
 
             <div class="form-group">
@@ -34,17 +41,16 @@
             </div>
 
             <div class="form-group">
-              <button class="encode btn btn-default pull-right" onclick="encodeMessage()">Encode</button>
+              <button class="encode btn btn-default pull-right" type="button">Encode</button>
             </div>
           </form>
           <div class="clearfix"></div>
         </div>
 
-        <div class="error" style="display: none;"></div>
+        <div class="error alert alert-danger" style="display: none;"></div>
         <div class="binary" style="display: none;">
           <h3>Binary representation of your message</h3>
-          <textarea class="form-control message" style="word-wrap:break-word;">
-          </textarea>
+          <textarea class="form-control message" style="word-wrap:break-word;"></textarea>
         </div>
         <div class="images" style="display: none;">
           <div class="original" style="display: none;">
@@ -71,37 +77,29 @@
           </p>
           <form class="form">
             <div class="form-group">
-              <input class="form-control" type="file" name="decodeFile" onchange="previewDecodeImage()">
+              <input class="form-control" type="file" name="decodeFile">
             </div>
             <div class="form-group">
-              <button class="decode btn btn-default pull-right" onclick="decodeMessage()">Decode</button>
+              <button class="decode btn btn-default pull-right" type="button">Decode</button>
             </div>
           </form>
           <div class="clearfix"></div>
         </div>
         <div class="binary-decode" style="display: none;">
           <h3>Hidden message</h3>
-          <textarea class="form-control message" style="word-wrap:break-word;">
-          </textarea>
+          <textarea class="form-control message" style="word-wrap:break-word;"></textarea>
         </div>
         <div class="decode" style="display: none;">
           <h3>Input</h3>
           <canvas></canvas>
         </div>
       </div>
-
     </div>
 
     <footer style="text-align: center; margin-top: 20px; margin-bottom: 10px;">
       &copy; 2014 by <a href="mailto:stylesuxx@gmail.com">stylesuxx</a>
     </footer>
   </div>
-
-  <style>
-    canvas {
-      max-width: 100%;
-    }
-  </style>
 
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.1/js/bootstrap.min.js"></script>
