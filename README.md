@@ -2,7 +2,7 @@
 
 Welcome to the Steganography Online project! This small project is dedicated to the art of steganography, providing functionality to **encode** a message in an image and to **decode** the message from the image.
 
-Head over to the [GitHub page](https://parthxd7.github.io/steganography/) to check out the online decoder and encoder.
+Head over to the [GitHub page](https://parthxd7.github.io/Steganography/) to check out the online decoder and encoder.
 
 ## 📚 About Steganography
 
