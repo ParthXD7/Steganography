@@ -1,166 +1,110 @@
-$('button.encode, button.decode').click(function(event) {
-  event.preventDefault();
+$(document).ready(function() {
+  $('button.encode, button.decode').click(event => event.preventDefault());
+
+  $('input[name=decodeFile]').change(previewDecodeImage);
+  $('input[name=baseFile]').change(previewEncodeImage);
+
+  function previewDecodeImage() {
+    const file = document.querySelector('input[name=decodeFile]').files[0];
+    previewImage(file, ".decode canvas", () => $(".decode").fadeIn());
+  }
+
+  function previewEncodeImage() {
+    const file = document.querySelector("input[name=baseFile]").files[0];
+    $(".images .nulled, .images .message").hide();
+    previewImage(file, ".original canvas", () => {
+      $(".images .original, .images").fadeIn();
+    });
+  }
+
+  function previewImage(file, canvasSelector, callback) {
+    const reader = new FileReader();
+    const image = new Image();
+    const $canvas = $(canvasSelector);
+    const context = $canvas[0].getContext('2d');
+
+    if (file) {
+      reader.readAsDataURL(file);
+    }
+
+    reader.onloadend = () => {
+      image.src = URL.createObjectURL(file);
+      image.onload = () => {
+        $canvas.prop({ width: image.width, height: image.height });
+        context.drawImage(image, 0, 0);
+        callback();
+      };
+    };
+  }
+
+  function encodeMessage() {
+    $(".error, .binary").hide();
+
+    const text = $("textarea.message").val();
+    const $originalCanvas = $('.original canvas');
+    const $nulledCanvas = $('.nulled canvas');
+    const $messageCanvas = $('.message canvas');
+    const originalContext = $originalCanvas[0].getContext("2d");
+    const nulledContext = $nulledCanvas[0].getContext("2d");
+    const messageContext = $messageCanvas[0].getContext("2d");
+    const width = $originalCanvas[0].width;
+    const height = $originalCanvas[0].height;
+
+    if ((text.length * 8) > (width * height * 3)) {
+      $(".error").text("Text too long for chosen image...").fadeIn();
+      return;
+    }
+
+    $nulledCanvas.prop({ width, height });
+    $messageCanvas.prop({ width, height });
+
+    const original = originalContext.getImageData(0, 0, width, height);
+    const pixel = original.data;
+
+    for (let i = 0; i < pixel.length; i += 4) {
+      for (let offset = 0; offset < 3; offset++) {
+        if (pixel[i + offset] % 2 !== 0) {
+          pixel[i + offset]--;
+        }
+      }
+    }
+    nulledContext.putImageData(original, 0, 0);
+
+    const binaryMessage = text.split('').map(char => char.charCodeAt(0).toString(2).padStart(8, '0')).join('');
+    $('.binary textarea').text(binaryMessage);
+
+    const message = nulledContext.getImageData(0, 0, width, height);
+    let counter = 0;
+
+    for (let i = 0; i < message.data.length && counter < binaryMessage.length; i += 4) {
+      for (let offset = 0; offset < 3 && counter < binaryMessage.length; offset++) {
+        message.data[i + offset] += parseInt(binaryMessage[counter++], 2);
+      }
+    }
+    messageContext.putImageData(message, 0, 0);
+
+    $(".binary, .images .nulled, .images .message").fadeIn();
+  }
+
+  function decodeMessage() {
+    const $originalCanvas = $('.decode canvas');
+    const originalContext = $originalCanvas[0].getContext("2d");
+    const width = $originalCanvas[0].width;
+    const height = $originalCanvas[0].height;
+
+    const original = originalContext.getImageData(0, 0, width, height);
+    const binaryMessage = [...original.data].reduce((acc, byte, i) => {
+      if (i % 4 !== 3) acc.push(byte % 2);
+      return acc;
+    }, []).join('');
+
+    const output = binaryMessage.match(/.{1,8}/g).map(byte => String.fromCharCode(parseInt(byte, 2))).join('');
+
+    $('.binary-decode textarea').text(output);
+    $('.binary-decode').fadeIn();
+  }
+
+  // Attach encode and decode functions to buttons
+  $('button.encode').click(encodeMessage);
+  $('button.decode').click(decodeMessage);
 });
-
-function previewDecodeImage() {
-  var file = document.querySelector('input[name=decodeFile]').files[0];
-
-  previewImage(file, ".decode canvas", function() {
-    $(".decode").fadeIn();
-  });
-}
-
-function previewEncodeImage() {
-  var file = document.querySelector("input[name=baseFile]").files[0];
-
-  $(".images .nulled").hide();
-  $(".images .message").hide();
-
-  previewImage(file, ".original canvas", function() {
-    $(".images .original").fadeIn();
-    $(".images").fadeIn();
-  });
-}
-
-function previewImage(file, canvasSelector, callback) {
-  var reader = new FileReader();
-  var image = new Image;
-  var $canvas = $(canvasSelector);
-  var context = $canvas[0].getContext('2d');
-
-  if (file) {
-    reader.readAsDataURL(file);
-  }
-
-  reader.onloadend = function () {
-    image.src = URL.createObjectURL(file);
-
-    image.onload = function() {
-      $canvas.prop({
-        'width': image.width,
-        'height': image.height
-      });
-
-      context.drawImage(image, 0, 0);
-
-      callback();
-    }
-  }
-}
-
-function encodeMessage() {
-  $(".error").hide();
-  $(".binary").hide();
-
-  var text = $("textarea.message").val();
-
-  var $originalCanvas = $('.original canvas');
-  var $nulledCanvas = $('.nulled canvas');
-  var $messageCanvas = $('.message canvas');
-
-  var originalContext = $originalCanvas[0].getContext("2d");
-  var nulledContext = $nulledCanvas[0].getContext("2d");
-  var messageContext = $messageCanvas[0].getContext("2d");
-
-  var width = $originalCanvas[0].width;
-  var height = $originalCanvas[0].height;
-
-  // Check if the image is big enough to hide the message
-  if ((text.length * 8) > (width * height * 3)) {
-    $(".error")
-      .text("Text too long for chosen image....")
-      .fadeIn();
-
-    return;
-  }
-
-  $nulledCanvas.prop({
-    'width': width,
-    'height': height
-  });
-
-  $messageCanvas.prop({
-    'width': width,
-    'height': height
-  });
-
-  // Normalize the original image and draw it
-  var original = originalContext.getImageData(0, 0, width, height);
-  var pixel = original.data;
-  for (var i = 0, n = pixel.length; i < n; i += 4) {
-    for (var offset =0; offset < 3; offset ++) {
-      if(pixel[i + offset] %2 != 0) {
-        pixel[i + offset]--;
-      }
-    }
-  }
-  nulledContext.putImageData(original, 0, 0);
-
-  // Convert the message to a binary string
-  var binaryMessage = "";
-  for (i = 0; i < text.length; i++) {
-    var binaryChar = text[i].charCodeAt(0).toString(2);
-
-    // Pad with 0 until the binaryChar has a lenght of 8 (1 Byte)
-    while(binaryChar.length < 8) {
-      binaryChar = "0" + binaryChar;
-    }
-
-    binaryMessage += binaryChar;
-  }
-  $('.binary textarea').text(binaryMessage);
-
-  // Apply the binary string to the image and draw it
-  var message = nulledContext.getImageData(0, 0, width, height);
-  pixel = message.data;
-  counter = 0;
-  for (var i = 0, n = pixel.length; i < n; i += 4) {
-    for (var offset =0; offset < 3; offset ++) {
-      if (counter < binaryMessage.length) {
-        pixel[i + offset] += parseInt(binaryMessage[counter]);
-        counter++;
-      }
-      else {
-        break;
-      }
-    }
-  }
-  messageContext.putImageData(message, 0, 0);
-
-  $(".binary").fadeIn();
-  $(".images .nulled").fadeIn();
-  $(".images .message").fadeIn();
-};
-
-function decodeMessage() {
-  var $originalCanvas = $('.decode canvas');
-  var originalContext = $originalCanvas[0].getContext("2d");
-
-  var original = originalContext.getImageData(0, 0, $originalCanvas.width(), $originalCanvas.height());
-  var binaryMessage = "";
-  var pixel = original.data;
-  for (var i = 0, n = pixel.length; i < n; i += 4) {
-    for (var offset =0; offset < 3; offset ++) {
-      var value = 0;
-      if(pixel[i + offset] %2 != 0) {
-        value = 1;
-      }
-
-      binaryMessage += value;
-    }
-  }
-
-  var output = "";
-  for (var i = 0; i < binaryMessage.length; i += 8) {
-    var c = 0;
-    for (var j = 0; j < 8; j++) {
-      c <<= 1;
-      c |= parseInt(binaryMessage[i + j]);
-    }
-
-    output += String.fromCharCode(c);
-  }
-
-  $('.binary-decode textarea').text(output);
-  $('.binary-decode').fadeIn();
-};
